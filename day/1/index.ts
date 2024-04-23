@@ -3,6 +3,18 @@ import * as readline from "readline";
 
 const fileName = process.argv[2];
 
+const wordToDigit: Record<string, string> = {
+  one: "1",
+  two: "2",
+  three: "3",
+  four: "4",
+  five: "5",
+  six: "6",
+  seven: "7",
+  eight: "8",
+  nine: "9",
+};
+
 async function processFile(filePath: string): Promise<void> {
   const fileStream = fs.createReadStream(filePath);
 
@@ -14,7 +26,13 @@ async function processFile(filePath: string): Promise<void> {
   let totalSum = 0;
 
   for await (const line of rl) {
-    const digits = line.replace(/\D/g, "");
+    let processedLine = line.toLowerCase();
+
+    processedLine = processedLine.replace(/(one|two|three|four|five|six|seven|eight|nine)/g, matched => {
+      return wordToDigit[matched];
+    });
+
+    const digits = processedLine.replace(/\D/g, "");
 
     if (digits.length > 0) {
       const firstDigit = digits.charAt(0);
