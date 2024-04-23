@@ -15,6 +15,42 @@ interface Coordinate {
   column: number;
 }
 
+function checkAdjacents(
+  numberInfo: NumberWithPosition,
+  lines: string[]
+): boolean {
+  const directions = [
+    [-1, -1],
+    [-1, 0],
+    [-1, 1],
+    [0, -1],
+    [0, 1],
+    [1, -1],
+    [1, 0],
+    [1, 1],
+  ];
+
+  for (let offset = 0; offset < numberInfo.length; offset++) {
+    const baseCol = numberInfo.column + offset;
+    for (const [dRow, dCol] of directions) {
+      const adjRow = numberInfo.line + dRow;
+      const adjCol = baseCol + dCol;
+      if (
+        adjRow >= 0 &&
+        adjRow < lines.length &&
+        adjCol >= 0 &&
+        adjCol < lines[adjRow].length
+      ) {
+        const char = lines[adjRow][adjCol];
+        if (!char.match(/[\d\.]/)) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
 function checkGears(
   numberInfo: NumberWithPosition,
   lines: string[]
@@ -53,7 +89,7 @@ function checkGears(
   return Array.from(new Set(gears));
 }
 
-async function processFile(filePath: string): Promise<void> {
+export async function processFile(filePath: string, part = 2): Promise<number> {
   const fileStream = fs.createReadStream(filePath);
 
   const rl = readline.createInterface({
@@ -83,14 +119,18 @@ async function processFile(filePath: string): Promise<void> {
   }
 
   numbersWithPositions.forEach((numberInfo) => {
-    const gears = checkGears(numberInfo, lines);
-    gears.forEach((gear) => {
-      const key = `${gear.line},${gear.column}`;
-      if (!gearMap.has(key)) {
-        gearMap.set(key, new Set());
-      }
-      gearMap.get(key).add(numberInfo.value);
-    });
+    if (part === 1 && checkAdjacents(numberInfo, lines)) {
+      totalSum += numberInfo.value;
+    } else if (part === 2) {
+      const gears = checkGears(numberInfo, lines);
+      gears.forEach((gear) => {
+        const key = `${gear.line},${gear.column}`;
+        if (!gearMap.has(key)) {
+          gearMap.set(key, new Set());
+        }
+        gearMap.get(key).add(numberInfo.value);
+      });
+    }
   });
 
   rl.close();
@@ -102,7 +142,7 @@ async function processFile(filePath: string): Promise<void> {
     }
   });
 
-  console.log("Total Sum:", totalSum);
+  return totalSum;
 }
 
 if (!fileName) {
@@ -110,4 +150,8 @@ if (!fileName) {
   process.exit(1);
 }
 
-processFile(fileName).catch(console.error);
+if (fileName !== "index.test.ts") {
+  processFile(fileName)
+    .then((totalSum) => console.log("Total Sum:", totalSum))
+    .catch(console.error);
+}

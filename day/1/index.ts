@@ -15,7 +15,7 @@ const wordToDigit: Record<string, string> = {
   nine: "9",
 };
 
-async function processFile(filePath: string): Promise<void> {
+export async function processFile(filePath: string, part = 2): Promise<number> {
   const fileStream = fs.createReadStream(filePath);
 
   const rl = readline.createInterface({
@@ -30,23 +30,20 @@ async function processFile(filePath: string): Promise<void> {
     let position = 0;
 
     while (position < line.length) {
-      let found = false;
-
-      for (const [word, digit] of Object.entries(wordToDigit)) {
-        if (line.substring(position).startsWith(word)) {
-          mapped.push(digit);
-          position += word.length;
-          found = true;
-          break;
+      if (part === 2) {
+        for (const [word, digit] of Object.entries(wordToDigit)) {
+          if (line.substring(position).startsWith(word)) {
+            mapped.push(digit);
+            position += word.length;
+            break;
+          }
         }
       }
 
-      if (!found) {
-        if (/\d/.test(line[position])) {
-          mapped.push(line[position]);
-        }
-        position++;
+      if (/\d/.test(line[position])) {
+        mapped.push(line[position]);
       }
+      position++;
     }
 
     if (mapped.length > 0) {
@@ -58,7 +55,7 @@ async function processFile(filePath: string): Promise<void> {
   }
 
   rl.close();
-  console.log("Total Sum:", totalSum);
+  return totalSum;
 }
 
 if (!fileName) {
@@ -66,4 +63,8 @@ if (!fileName) {
   process.exit(1);
 }
 
-processFile(fileName).catch(console.error);
+if (fileName !== "index.test.ts") {
+  processFile(fileName)
+    .then((totalSum) => console.log("Total Sum:", totalSum))
+    .catch(console.error);
+}

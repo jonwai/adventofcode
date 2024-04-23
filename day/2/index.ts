@@ -3,7 +3,7 @@ import * as readline from "readline";
 
 const fileName = process.argv[2];
 
-async function processFile(filePath: string): Promise<void> {
+export async function processFile(filePath: string, part = 2): Promise<number> {
   const fileStream = fs.createReadStream(filePath);
 
   const rl = readline.createInterface({
@@ -14,7 +14,6 @@ async function processFile(filePath: string): Promise<void> {
   let totalSum = 0;
 
   for await (const line of rl) {
-    let skipLine = false;
     const games: { red: number; blue: number; green: number }[] = [];
     const minimums: { red: number; blue: number; green: number } = {
       red: 0,
@@ -40,13 +39,24 @@ async function processFile(filePath: string): Promise<void> {
       games.push(game);
     });
 
-    const power = minimums.red * minimums.green * minimums.blue;
-    console.log(power);
-    totalSum += power;
+    if (part === 1) {
+      let skipLine = false;
+      games.forEach((game) => {
+        if (game.red > 12 || game.green > 13 || game.blue > 14) {
+          skipLine = true;
+        }
+      });
+      if (!skipLine) {
+        totalSum += gameNumber;
+      }
+    } else if (part == 2) {
+      const power = minimums.red * minimums.green * minimums.blue;
+      totalSum += power;
+    }
   }
 
   rl.close();
-  console.log("Total Sum:", totalSum);
+  return totalSum;
 }
 
 if (!fileName) {
@@ -54,4 +64,8 @@ if (!fileName) {
   process.exit(1);
 }
 
-processFile(fileName).catch(console.error);
+if (fileName !== "index.test.ts") {
+  processFile(fileName)
+    .then((totalSum) => console.log("Total Sum:", totalSum))
+    .catch(console.error);
+}
