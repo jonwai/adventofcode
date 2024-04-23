@@ -26,26 +26,38 @@ async function processFile(filePath: string): Promise<void> {
   let totalSum = 0;
 
   for await (const line of rl) {
-    let processedLine = line.toLowerCase();
+    let mapped: string[] = [];
+    let position = 0;
 
-    processedLine = processedLine.replace(/(one|two|three|four|five|six|seven|eight|nine)/g, matched => {
-      return wordToDigit[matched];
-    });
+    while (position < line.length) {
+      let found = false;
 
-    const digits = processedLine.replace(/\D/g, "");
+      for (const [word, digit] of Object.entries(wordToDigit)) {
+        if (line.substring(position).startsWith(word)) {
+          mapped.push(digit);
+          position += word.length;
+          found = true;
+          break;
+        }
+      }
 
-    if (digits.length > 0) {
-      const firstDigit = digits.charAt(0);
-      const lastDigit = digits.charAt(digits.length - 1);
+      if (!found) {
+        if (/\d/.test(line[position])) {
+          mapped.push(line[position]);
+        }
+        position++;
+      }
+    }
 
+    if (mapped.length > 0) {
+      const firstDigit = mapped[0];
+      const lastDigit = mapped[mapped.length - 1];
       const number = parseInt(firstDigit + lastDigit, 10);
-
       totalSum += number;
     }
   }
 
   rl.close();
-
   console.log("Total Sum:", totalSum);
 }
 
