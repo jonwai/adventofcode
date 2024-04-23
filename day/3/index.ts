@@ -10,10 +10,17 @@ interface NumberWithPosition {
   length: number;
 }
 
-function checkAdjacents(
+interface Coordinate {
+  line: number;
+  column: number;
+}
+
+function checkGears(
   numberInfo: NumberWithPosition,
   lines: string[]
-): boolean {
+): Coordinate[] {
+  let gears: Coordinate[] = [];
+
   const directions = [
     [-1, -1],
     [-1, 0],
@@ -37,13 +44,13 @@ function checkAdjacents(
         adjCol < lines[adjRow].length
       ) {
         const char = lines[adjRow][adjCol];
-        if (!char.match(/[\d\.]/)) {
-          return true;
+        if (char === "*") {
+          gears.push({ line: adjRow, column: adjCol });
         }
       }
     }
   }
-  return false;
+  return Array.from(new Set(gears));
 }
 
 async function processFile(filePath: string): Promise<void> {
@@ -58,6 +65,7 @@ async function processFile(filePath: string): Promise<void> {
   let numbersWithPositions: NumberWithPosition[] = [];
   let totalSum = 0;
   let lineNumber = 0;
+  const gearMap = new Map<string, Set<number>>();
 
   for await (const line of rl) {
     lines.push(line);
@@ -73,15 +81,27 @@ async function processFile(filePath: string): Promise<void> {
     }
     lineNumber++;
   }
-  console.log(numbersWithPositions);
 
-  for (const numberInfo of numbersWithPositions) {
-    if (checkAdjacents(numberInfo, lines)) {
-      totalSum += numberInfo.value;
-    }
-  }
+  numbersWithPositions.forEach((numberInfo) => {
+    const gears = checkGears(numberInfo, lines);
+    gears.forEach((gear) => {
+      const key = `${gear.line},${gear.column}`;
+      if (!gearMap.has(key)) {
+        gearMap.set(key, new Set());
+      }
+      gearMap.get(key).add(numberInfo.value);
+    });
+  });
 
   rl.close();
+
+  gearMap.forEach((values, _) => {
+    if (values.size === 2) {
+      const product = Array.from(values).reduce((a, b) => a * b);
+      totalSum += product;
+    }
+  });
+
   console.log("Total Sum:", totalSum);
 }
 
