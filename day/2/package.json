@@ -1,0 +1,16 @@
+{
+	"name": "advent-of-code-day-2",
+	"main": "dist/index.js",
+	"scripts": {
+	  "build": "tsc",
+	  "start": "node dist/index.js"
+	},
+	"dependencies": {
+	  "@types/node": "^16.0.0"
+	},
+	"devDependencies": {
+		"typescript": "^5.4.5"
+	},
+	"type": "module",
+	"tsconfig": "tsconfig.json"
+}
